@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timbre Escolar - Cuenta Regresiva</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #e9ecef; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { background: white; padding: 2.5rem; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); text-align: center; width: 400px; }
+        .clock { font-size: 3rem; color: #212529; font-weight: 700; margin: 10px 0; }
+        .countdown-label { color: #6c757d; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; }
+        #timer { font-size: 2rem; color: #dc3545; font-weight: bold; margin-bottom: 20px; }
+        .status { padding: 12px; border-radius: 50px; font-weight: bold; margin-top: 20px; border: 2px solid #dee2e6; }
+        .ringing { background: #ffc107; color: #000; border-color: #ffc107; animation: shake 0.5s infinite; }
+        @keyframes shake { 0% { transform: rotate(0deg); } 25% { transform: rotate(2deg); } 75% { transform: rotate(-2deg); } 100% { transform: rotate(0deg); } }
+        .schedule-tag { display: inline-block; background: #f8f9fa; padding: 5px 10px; border-radius: 5px; margin: 3px; font-size: 0.8rem; color: #495057; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="countdown-label">Siguiente timbre en:</div>
+    <div id="timer">--:--:--</div>
+    
+    <div class="clock" id="wall-clock">00:00:00</div>
+    <div id="status" class="status">SISTEMA LISTO</div>
+
+    <div style="margin-top: 25px; border-top: 1px solid #eee; pt: 15px;">
+        <p style="font-size: 0.8rem; color: #6c757d;">Horarios programados:</p>
+        <div id="tags"></div>
+    </div>
+</div>
+
+<script>
+    const schedule = ["08:30", "09:20", "10:15", "11:10", "11:35", "12:30", "13:25", "14:20"];
+    
+    // Mostrar etiquetas de horarios
+    const tagsContainer = document.getElementById('tags');
+    schedule.forEach(time => {
+        tagsContainer.innerHTML += `<span class="schedule-tag">${time}</span>`;
+    });
+
+    function update() {
+        const now = new Date();
+        const currentTime = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+        
+        // Actualizar reloj de pared
+        document.getElementById('wall-clock').innerText = now.toLocaleTimeString();
+
+        // Encontrar siguiente timbre
+        let nextTimbreSeconds = -1;
+        for (let time of schedule) {
+            let [h, m] = time.split(':').map(Number);
+            let s = h * 3600 + m * 60;
+            if (s > currentTime) {
+                nextTimbreSeconds = s;
+                break;
+            }
+        }
+
+        const timerDisplay = document.getElementById('timer');
+        const statusDisplay = document.getElementById('status');
+
+        if (nextTimbreSeconds !== -1) {
+            let diff = nextTimbreSeconds - currentTime;
+            let h = Math.floor(diff / 3600).toString().padStart(2, '0');
+            let m = Math.floor((diff % 3600) / 60).toString().padStart(2, '0');
+            let s = (diff % 60).toString().padStart(2, '0');
+            timerDisplay.innerText = `${h}:${m}:${s}`;
+        } else {
+            timerDisplay.innerText = "FIN DEL DÍA";
+        }
+
+        // Lógica de activación (Simulación de Relé de 5 segundos)
+        const currentHHMM = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+        if (schedule.includes(currentHHMM) && now.getSeconds() < 5) {
+            statusDisplay.innerText = "🔔 ¡TIMBRE SONANDO!";
+            statusDisplay.className = "status ringing";
+        } else {
+            statusDisplay.innerText = "SISTEMA LISTO";
+            statusDisplay.className = "status";
+        }
+    }
+
+    setInterval(update, 1000);
+    update();
+</script>
+
+</body>
+</html>
